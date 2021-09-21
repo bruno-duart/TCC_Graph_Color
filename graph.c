@@ -115,3 +115,52 @@ type_t list_pop_front(list_t *l){
 type_t list_pop_back(list_t *l){
     return list_erase(l, l->size_list-1);
 }
+
+//Grafos com listas de adjacência
+vertex_t *new_vertex(type_t value){
+    vertex_t *vertex = malloc(sizeof(vertex_t));
+
+    vertex->adj = new_list();
+    vertex->value = value;
+
+    return vertex;
+}
+
+graph_t *new_graph(){
+    graph_t *graph = malloc(sizeof(graph_t));
+
+    graph->size = 0;
+    scanf("%d", &graph->capacity);
+    graph->arr_vert = malloc(sizeof(vertex_t*)*graph->capacity);
+
+    return graph;
+}
+
+void free_vertex(vertex_t *vert){
+    free_list(vert->adj);
+    free(vert);
+}
+void free_graph(graph_t *graph){
+    for(int i=0; i < graph->capacity; i++){
+        free_vertex(graph->arr_vert[i]);
+    }
+}
+/*
+char verify_vertex_exists(graph_t *graph, type_t value);
+char verify_edge_exist(graph_t *graph, type_t vertex1, type_t vertex2);*/
+
+void insert_vertex(graph_t *graph, type_t value){
+    graph->arr_vert[graph->size++] = new_vertex(value);
+}
+
+void print_vertex(vertex_t *vertex){
+    printf("%d: ", vertex->value);
+    print_list(vertex->adj);
+}
+
+void print_graph(graph_t *graph){
+    for(int i=0; i < graph->size; i++){
+        print_vertex(graph->arr_vert[i]);
+    }
+}
+
