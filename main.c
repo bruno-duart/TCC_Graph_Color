@@ -1,47 +1,46 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
 //#include "graph.h"
-#include "grafos.h"
+//#include "grafos.h"
+#include "metaheuristics.h"
 
-#define solution_t int*
+//#define solution_t int*
 
-char is_solution(solution_t array, int** matrix, int num_vertex);
+//char is_solution(solution_t array, int** matrix, int num_vertex);
 
 int main(){
-    //graph_t *graph = new_graph();
-    /*type_t value = (type_t)3;
-    vertex_t *vertex = new_vertex(value);
-    for(int i=4; i < 8; i++)
-        list_push_back(vertex->adj, i);
-    print_vertex(vertex);
-    free_vertex(vertex);
-    free_graph(graph);*/
-    int num_vertex, num_colors = 3;
-    int **matrix;  
+    int num_vertex;
+    scanf("%d", &num_vertex);
+    srand(time(NULL));
 
-    solution_t array; 
-    
-    scanf("%d",&num_vertex);
-    array = malloc(sizeof(int)*num_vertex);
-    matrix = New_matrix(num_vertex, num_vertex);
+    solution_t *sol;// = new_solution(num_vertex);
+    Graph_t *graph = New_Graph(num_vertex);
+    //int **matrix = New_matrix(num_vertex, num_vertex);
 
-    print_matrix(matrix, num_vertex, num_vertex);
-    array[0] = 1;
-    array[1] = 2;
-    array[2] = 1;
-    array[3] = 3;
-    array[4] = 2;
-    
-    printf("\n");
-    for(int i=0; i < 5; i++)
-        printf("%4d ", array[i]);
-    printf("\n");
+    /*sol->array[0] = 1;
+    sol->array[1] = 2;
+    sol->array[2] = 2;
+    sol->array[3] = 3;
+    sol->array[4] = 2;*/
 
-    printf("Is it a solution? %s\n", is_solution(array, matrix, num_vertex) == '1' ? "Yes" : "No");
+    sol = construct_first_solution(3, graph);
+    fitness_calculation(sol, graph);
 
+    print_solution(sol, num_vertex);
+    printf("Número de conflitos: %d\n", sol->fitness_value);
+
+
+    free_solution(sol);
+    /*for(int i=0; i<num_vertex; i++){
+        free(matrix[i]);
+    }
+    free(matrix);*/
+    free_Graph(graph);
     return 0;
 }
 
-char is_solution(solution_t array, int** matrix, int num_vertex){
+/*char is_solution(solution_t array, int** matrix, int num_vertex){
     for(int i=0; i < num_vertex; i++){
         for(int j=i; j < num_vertex; j++){
             if(array[i] == array[j] && matrix[i][j] != 0){
@@ -50,4 +49,4 @@ char is_solution(solution_t array, int** matrix, int num_vertex){
         }
     }
     return '1';
-}
+}*/

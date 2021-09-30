@@ -21,7 +21,7 @@ int** New_matrix(int row, int columns){
     return m;
 }
 
-void count_edges(Graph *G){
+void count_edges(Graph_t *G){
     /**
      * Função para contar o número de arestas
      * no grafo. Considerando que o grafo é
@@ -41,14 +41,14 @@ void count_edges(Graph *G){
     }
 }
 
-Graph* New_Graph(int V){
+Graph_t* New_Graph(int V){
     /**
      * Função para criação de novos grafos na 
      * forma de matriz de adjacências. 
      * @param V : número de vértices do Grafo.
      * Retorna o novo grafo criado.
     */
-    Graph *G = malloc(sizeof(Graph));
+    Graph_t *G = malloc(sizeof(Graph_t));
     G->V = V;
     G->A = 0;
     G->adj = New_matrix(V, V);
@@ -56,7 +56,7 @@ Graph* New_Graph(int V){
     return G;
 }
 
-void insert_arc(Graph *G, Type i, Type j, Type value){
+void insert_arc(Graph_t *G, Type i, Type j, Type value){
     /**
      * Função para inserir uma nova aresta 
      * no grafo. 
@@ -71,7 +71,7 @@ void insert_arc(Graph *G, Type i, Type j, Type value){
     }
 }
 
-void remove_arc(Graph *G, Type i, Type j){
+void remove_arc(Graph_t *G, Type i, Type j){
     /**
      * Função para remover uma aresta do grafo. 
      * @param G: o grafo a ter uma nova aresta inserida.
@@ -98,7 +98,7 @@ void print_matrix(int **matrix, int rows, int columns){
     }
 }
 
-void Graph_print(Graph *G){
+void Graph_print(Graph_t *G){
     /**
      * Função para printar a matriz de adjacências de um
      * grafo.
@@ -111,7 +111,7 @@ void Graph_print(Graph *G){
     }
 }
 
-void free_Graph(Graph *G){
+void free_Graph(Graph_t *G){
     /**
      * Função para liberar a memória alocada para o grafo.
      * @param G: o grafo a ter memória liberada.

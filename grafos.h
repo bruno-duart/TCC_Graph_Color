@@ -3,17 +3,17 @@
 
 #define Type int
 
-typedef struct {
+typedef struct _graph_t{
     int V;
     int A;
     int **adj;
-}Graph;
+}Graph_t;
 
 int** New_matrix(int row, int columns);
-void count_edges(Graph *G);
-Graph* New_Graph(int V);
-void insert_arc(Graph *G, Type i, Type j, Type value);
-void remove_arc(Graph *G, Type i, Type j);
+void count_edges(Graph_t *G);
+Graph_t* New_Graph(int V);
+void insert_arc(Graph_t *G, Type i, Type j, Type value);
+void remove_arc(Graph_t *G, Type i, Type j);
 void print_matrix(int **matrix, int rows, int columns);
-void Graph_print(Graph *G);
-void free_Graph(Graph *G);
+void Graph_print(Graph_t *G);
+void free_Graph(Graph_t *G);
