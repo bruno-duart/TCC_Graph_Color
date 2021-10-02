@@ -5,10 +5,6 @@
 //#include "grafos.h"
 #include "metaheuristics.h"
 
-//#define solution_t int*
-
-//char is_solution(solution_t array, int** matrix, int num_vertex);
-
 int main(){
     int num_vertex;
     scanf("%d", &num_vertex);
@@ -30,12 +26,7 @@ int main(){
     print_solution(sol, num_vertex);
     printf("Número de conflitos: %d\n", sol->fitness_value);
 
-
     free_solution(sol);
-    /*for(int i=0; i<num_vertex; i++){
-        free(matrix[i]);
-    }
-    free(matrix);*/
     free_Graph(graph);
     return 0;
 }
