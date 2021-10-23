@@ -5,6 +5,8 @@
 //#include "grafos.h"
 #include "metaheuristics.h"
 
+#define NUM_COLORS 5
+
 int main(){
     int num_vertex;
     scanf("%d", &num_vertex);
@@ -20,13 +22,19 @@ int main(){
     sol->array[3] = 3;
     sol->array[4] = 2;*/
 
-    sol = construct_first_solution(3, graph);
+    sol = construct_first_solution(NUM_COLORS, graph);
     fitness_calculation(sol, graph);
-
     print_solution(sol, num_vertex);
     printf("Número de conflitos: %d\n", sol->fitness_value);
 
+    //solution_t *new_sol = explore_neighborhood(sol, graph, 3);
+
+    solution_t *new_sol = simulated_annealing(sol, graph, NUM_COLORS);
+    print_solution(new_sol, num_vertex);
+    printf("Número de conflitos: %d\n", new_sol->fitness_value);
+
     free_solution(sol);
+    free_solution(new_sol);
     free_Graph(graph);
     return 0;
 }
