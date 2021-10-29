@@ -1,9 +1,11 @@
 #include "forward_list.h"
 
-node_t *new_node(type_t value){
+node_t *new_node(int index_i, int undo_color, int T_iter){
     node_t *node = malloc(sizeof(node_t));
     
-    node->value = value;
+    node->index_i = index_i;
+    node->undo_color = undo_color;
+    node->count_iter = T_iter;
     node->next = NULL;
     
     return node;
@@ -39,11 +41,27 @@ node_t *list_at(list_t *list, int position){
     return aux;
 }
 
-void list_set(list_t *list, int position, type_t value){
-    list_at(list, position)->value = value;
+void list_set(list_t *list, int position, int index_i, int undo_color){
+    node_t *node = list_at(list, position);
+    node->index_i = index_i;
+    node->undo_color = undo_color;
 }
 
-type_t list_size(list_t *list){
+int list_search_by_value(list_t *list, int index_i, int undo_color){
+    node_t *aux = list->head;
+    int position = 0;
+
+    while(aux != NULL){
+        if((aux->index_i == index_i) && (aux->undo_color == undo_color)){
+            return position;
+        }
+        aux = aux->next;
+        position++;
+    }
+    return position;
+}
+
+int list_size(list_t *list){
     node_t *aux = list->head;
     int i = 0;
 
@@ -52,13 +70,13 @@ type_t list_size(list_t *list){
         aux = aux->next;
     }
     list->size_list = i;
-    return (type_t) i;
+    return (int) i;
 }
 
 void print_list(list_t *list){
     node_t *aux = list->head;
     while(aux != NULL){
-        printf("%d", aux->value);
+        printf("(%d,%d)", aux->index_i, aux->undo_color);
         if(aux->next != NULL){
             printf("->");
         }
@@ -67,8 +85,8 @@ void print_list(list_t *list){
     printf("\n");
 }
 
-void list_insert(list_t *l, type_t value, int position){
-    node_t *node = new_node(value);
+void list_insert(list_t *l, int index_i, int undo_color, int T_iter, int position){
+    node_t *node = new_node(index_i, undo_color, T_iter);
 
     if(position == 0){
         node->next = l->head;
@@ -81,25 +99,27 @@ void list_insert(list_t *l, type_t value, int position){
     l->size_list++;
 }
 
-void list_push_front(list_t *l, type_t value){
-    list_insert(l, value, 0);
+void list_push_front(list_t *l, int index_i, int undo_color, int T_iter){
+    list_insert(l, index_i, undo_color, T_iter, 0);
 }
 
-void list_push_back(list_t *l, type_t value){
-    list_insert(l, value, l->size_list);
+void list_push_back(list_t *l, int index_i, int undo_color, int T_iter){
+    list_insert(l, index_i, undo_color, T_iter, l->size_list);
 }
 
-type_t list_erase(list_t *l, int position){
+int * list_erase(list_t *l, int position){
     node_t *aux, *ptr;
-    type_t value;
+    int value[2];
     if(position == 0){
         ptr = l->head;
         l->head = ptr->next;
-        value = ptr->value;
+        value[0] = ptr->index_i;
+        value[1] = ptr->undo_color;
     } else{
         aux = list_at(l, position-1);
         ptr = aux->next;
-        value = ptr->value;
+        value[0] = ptr->index_i;
+        value[1] = ptr->undo_color;
         aux->next = ptr->next;
     }
     free(ptr);
@@ -107,10 +127,10 @@ type_t list_erase(list_t *l, int position){
     return value;
 }
 
-type_t list_pop_front(list_t *l){
+int * list_pop_front(list_t *l){
     return list_erase(l, 0);
 }
 
-type_t list_pop_back(list_t *l){
+int * list_pop_back(list_t *l){
     return list_erase(l, l->size_list-1);
 }

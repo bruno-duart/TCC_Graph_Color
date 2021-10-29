@@ -5,7 +5,7 @@
 //#include "grafos.h"
 #include "metaheuristics.h"
 
-#define NUM_COLORS 5
+#define NUM_COLORS 4
 
 int main(){
     int num_vertex;
@@ -29,12 +29,17 @@ int main(){
 
     //solution_t *new_sol = explore_neighborhood(sol, graph, 3);
 
-    solution_t *new_sol = simulated_annealing(sol, graph, NUM_COLORS);
-    print_solution(new_sol, num_vertex);
-    printf("Número de conflitos: %d\n", new_sol->fitness_value);
+    //solution_t *new_sol = simulated_annealing(sol, graph, NUM_COLORS);
+    //print_solution(new_sol, num_vertex);
+    //printf("Número de conflitos: %d\n", new_sol->fitness_value);
+
+    solution_t *new_sol_2 = tabu_search(sol, graph, NUM_COLORS);
+    print_solution(new_sol_2, num_vertex);
+    printf("Número de conflitos: %d\n", new_sol_2->fitness_value);
 
     free_solution(sol);
-    free_solution(new_sol);
+    //free_solution(new_sol);
+    free_solution(new_sol_2);
     free_Graph(graph);
     return 0;
 }

@@ -20,4 +20,7 @@ void copy_solution(solution_t *new, solution_t *old, Graph_t *graph);
 void explore_neighborhood(solution_t *new_sol, solution_t *sol, Graph_t *graph, int num_colors);
 //solution_t *explore_neighborhood(solution_t *sol, Graph_t *graph, int num_colors);
 solution_t *simulated_annealing(solution_t *sol, Graph_t *graph, int num_colors);
+void insert_tabu_move(list_t *list, int undo_color, int index);
+int is_tabu_move(list_t *list, int undo_color, int index);
+void decrease_iterations(list_t *list);
 solution_t *tabu_search(solution_t *sol, Graph_t *graph, int num_colors);
