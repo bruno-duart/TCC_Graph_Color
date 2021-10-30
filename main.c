@@ -5,7 +5,7 @@
 //#include "grafos.h"
 #include "metaheuristics.h"
 
-#define NUM_COLORS 4
+#define NUM_COLORS 5
 
 int main(){
     int num_vertex;

@@ -19,7 +19,6 @@ void free_list(list_t *l);
 
 node_t *list_at(list_t *l, int position);
 void list_set(list_t *l, int position, int index_i, int undo_color);
-int list_search_by_value(list_t *l, int index_i, int undo_color);
 int list_size(list_t *l);
 void print_list(list_t *l);
 

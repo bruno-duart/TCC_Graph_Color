@@ -6,9 +6,13 @@
 #define T_MIN 10
 #define MAX_TABU_SIZE 100
 #define T_ITER 10
-//#include "grafos.h"
 
 solution_t *new_solution(int num_vertices){
+    /**
+     * Função para inicializar uma nova solução. 
+     * @param num_vertices : número de vértices contidos em uma solução
+     * @return solution_t : uma nova solução
+    */
     solution_t *sol = malloc(sizeof(solution_t));
     sol->array = malloc(sizeof(int)*num_vertices);
     sol->fitness_value = 0;
@@ -17,11 +21,25 @@ solution_t *new_solution(int num_vertices){
 }
 
 void free_solution(solution_t *sol){
+    /**
+     * Função para liberar a memória alocada de uma solução.
+     * É liberada a memória do array de vértices e em seguida
+     * a memória da estrutura solution_t
+     * @param sol : solução a ter sua memória liberada
+    */
     free(sol->array);
     free(sol);
 }
 
 void fitness_calculation(solution_t *sol, Graph_t *graph){
+    /**
+     * Função para calcular a fitness de cada solução. Comparam-se as cores
+     * de cada vértice com as cores de seus adjacentes. A matriz é percorrida
+     * linha a linha, e conta o número de conflitos.
+     * @param sol : solução a ter sua fitness calculada
+     * @param graph : grafo que contém a matriz de adjacências
+     * 
+    */
     sol->fitness_value = 0;
     for(int i=0; i < graph->V; i++){
         for(int j=i+1; j < graph->V; j++){
@@ -33,6 +51,14 @@ void fitness_calculation(solution_t *sol, Graph_t *graph){
 }
 
 solution_t *construct_first_solution(int num_color, Graph_t *graph){
+    /**
+     * Função para construir uma solução inicial. As cores de cada
+     * vértice são escolhidas aleatoriamente. Após o término dos 
+     * sorteios, a fitness é calculada.
+     * @param num_color : número de cores disponíveis para seleção
+     * @param graph : grafo a partir do qual a solução é criada
+     * @return solution_t : uma nova solução
+    */
     solution_t* sol = new_solution(graph->V);
 
     for(int i=0; i<graph->V; i++)
@@ -44,6 +70,11 @@ solution_t *construct_first_solution(int num_color, Graph_t *graph){
 }
 
 void print_solution(solution_t *sol, int num_vertex){
+    /**
+     * Função para exibir o array de cores de uma solução.
+     * @param sol: solução a ser exibida
+     * @param num_vertex: número de vértices a ser exibido
+    */
     for(int i=0; i<num_vertex; i++){
         printf("%4d ",sol->array[i]);
     }
@@ -51,18 +82,29 @@ void print_solution(solution_t *sol, int num_vertex){
 }
 
 void copy_solution(solution_t *new, solution_t *old, Graph_t *graph){
+    /**
+     * Função para copiar as cores e a fitness de uma solução 
+     * para outra. 
+     * @param new : solução que vai receber a cópia
+     * @param old : solução que vai ser copiada
+     * @param graph : grafo que contém os vértices
+    */
     for(int i=0; i < graph->V; i++){
         new->array[i] = old->array[i];
     }
-    fitness_calculation(new, graph);
+    new->fitness_value = old->fitness_value;
 }
 
 void explore_neighborhood(solution_t *new_sol, solution_t *sol, Graph_t *graph, int num_colors){
-//solution_t *explore_neighborhood(solution_t *sol, Graph_t *graph, int num_colors){
-    //solution_t *new_sol = new_solution(graph->V);
+    /**
+     * Função para realizar uma exploração na vizinhança.
+     * Uma nova solução é obtida ao variar a cor de um unico vértice.
+     * @param new_sol : endereço de memória para a nova solução
+     * @param sol: solução a ter a vizinhança explorada
+     * @param graph: grafo de adjacências 
+     * @param num_colors: número de cores disponíveis
+    */
     int num_index = rand() % graph->V;
-
-    //memcpy(new_sol, sol, sizeof(solution_t*));
 
     copy_solution(new_sol, sol, graph);
 
@@ -71,64 +113,80 @@ void explore_neighborhood(solution_t *new_sol, solution_t *sol, Graph_t *graph, 
     }while(new_sol->array[num_index] == sol->array[num_index]);
 
     fitness_calculation(new_sol, graph);
-
-    //return new_sol;
 }
 
 solution_t *simulated_annealing(solution_t *sol, Graph_t *graph, int num_colors){
+    /**
+     * Meta-heurística Simulated Annealing. Realiza a busca por
+     * uma solução de melhor qualidade.
+     * @param sol: solução inicial
+     * @param graph: grafo de adjacência
+     * @param num_colors: número de cores disponível
+     * @return best_solution: melhor solução encontrada
+    */
     solution_t *best_solution = new_solution(graph->V);
     solution_t *current = new_solution(graph->V);
     int deltaE, num_iter=0, num_pioras=0;
     double probability;
     int T = T_MAX;
 
-    //memcpy(best_solution, sol, sizeof(solution_t));
-    copy_solution(best_solution, sol, graph);
+    copy_solution(best_solution, sol, graph); // Copia a solução inicial para a melhor encontrada
 
     do{
         num_pioras = 0;
         do{
-            //current = explore_neighborhood(sol, graph, num_colors);
-            explore_neighborhood(current, sol, graph, num_colors);
-            deltaE = current->fitness_value - sol->fitness_value;
+            explore_neighborhood(current, sol, graph, num_colors); // explora a vizinhança
+            deltaE = current->fitness_value - sol->fitness_value; // Calcula a variação de energia das soluções
 
             probability = ((double) rand()) / ((double) RAND_MAX);
 
-            if (deltaE < 0){
+            if (deltaE < 0){ // Caso a nova solução gerada seja melhor que a corrente
                 copy_solution(sol, current, graph);
                 num_iter=0;
-                if (sol->fitness_value < best_solution->fitness_value){
+                if (sol->fitness_value < best_solution->fitness_value){ // Se for melhor que a melhor corrente
                     copy_solution(best_solution, sol, graph);
                 }
-            } else if(probability < exp(-deltaE/T)){
+            } else if(probability < exp(-deltaE/T)){ // Solução gerada é pior, mas é aceita por probabilidade
                 num_iter=0;
                 num_pioras++;
                 copy_solution(sol, current, graph);
-            } else{
+            } else{ // Solução não aceita
                 num_iter++;
             }
 
-            if (best_solution->fitness_value == 0){
+            if (best_solution->fitness_value == 0){ // Se tiver atingido zero conflitos
                 break;
             }
-            //printf("->%d\n", best_solution->fitness_value);
-        }while((num_iter < CONVERGE) && (num_pioras < EQUILIBRIO));
+            
+        }while((num_iter < CONVERGE) && (num_pioras < EQUILIBRIO)); // Até que uma condição de equilíbrio seja satisfeita
         if (best_solution->fitness_value == 0){
             break;
         }
-        //printf("%d\n", T);
+        
         T *= 0.98;
-    }while(T > T_MIN);
+    }while(T > T_MIN); // Enquanto a temperatura atual for maior que a mínima
 
     free_solution(current);
     return best_solution;
 }
 
 void insert_tabu_move(list_t *list, int undo_color, int index){
+    /**
+     * Insere um movimento tabu no final da lista
+     * @param list: lista a ter um elemento inserido
+     * @param undo_color: cor que desfaz o movimento
+     * @param index: vértice que desfaz o movimento
+    */
     list_push_back(list, index, undo_color, T_ITER);
 }
 
 int is_tabu_move(list_t *list, int undo_color, int index){
+    /**
+     * Verifica se o movimento é tabu, ou seja, se está na lista
+     * @param list: lista ser verificada
+     * @param undo_color: cor que desfaz o movimento
+     * @param index: vértice correspondente
+    */
     node_t *node = list->head;
     int position = 0;
 
@@ -144,13 +202,20 @@ int is_tabu_move(list_t *list, int undo_color, int index){
 }
 
 void decrease_iterations(list_t *list){
+    /**
+     * Decrementa o número de iterações de restrição
+     * dos movimentos da lista. Se o número atinge zero, 
+     * o elemento é removido. Remove-se sempre o primeiro 
+     * elemento da lista, pois novos elementos são sempre adicionados
+     * ao final.
+     * @param list: lista a ser análisada
+    */
     node_t *node = list->head;
     while(node != NULL){
         node->count_iter--;
         if(!node->count_iter){
-            int position = list_search_by_value(list, node->index_i, node->undo_color);
             node = node->next;
-            list_erase(list, position);
+            list_pop_front(list);
             continue;
         }
         node = node->next;
@@ -158,12 +223,20 @@ void decrease_iterations(list_t *list){
 }
 
 solution_t *tabu_search(solution_t *sol, Graph_t *graph, int num_colors){
+    /**
+     * Meta-heurística Busca Tabu. Realiza a busca por
+     * uma solução de melhor qualidade.
+     * @param sol: solução inicial
+     * @param graph: grafo de adjacência
+     * @param num_colors: número de cores disponível
+     * @return best_solution: melhor solução encontrada
+    */
     solution_t *best_solution = new_solution(graph->V);
     solution_t *current = new_solution(graph->V);
     copy_solution(best_solution, sol, graph);
     copy_solution(current, sol, graph);
 
-    int num_iter = 0, num_sol_geradas = (graph->V > 100) ? (graph->V*0.1) : 5;
+    int num_iter = 0, num_sol_geradas = (graph->V > 100) ? (graph->V*0.1) : 5; 
     solution_t *arr_solutions[num_sol_geradas];
 
     for(int i=0; i < num_sol_geradas; i++)
@@ -171,13 +244,11 @@ solution_t *tabu_search(solution_t *sol, Graph_t *graph, int num_colors){
 
     list_t *tabu_list = new_list();
 
-
     //Here goes the code
     while(num_iter < 100){//(best_solution->fitness_value > 0 && num_iter < EQUILIBRIO){
-        //gerar um determinado número de soluções, e pegar a melhor
+        // Gerar um determinado número de soluções, e pega a melhor
         int menor = 0, index, undo_color;
         for(int i=0; i<num_sol_geradas; i++){
-            //copy_solution(arr_solutions[i], current, graph);
             explore_neighborhood(arr_solutions[i], current, graph, num_colors);
 
             if(arr_solutions[i]->fitness_value < arr_solutions[menor]->fitness_value){
@@ -185,7 +256,7 @@ solution_t *tabu_search(solution_t *sol, Graph_t *graph, int num_colors){
             }
         }
 
-        for(int i=0; i < graph->V; i++){
+        for(int i=0; i < graph->V; i++){ // Verifica qual o movimento inverso, e qual vértice é alterado
             if(arr_solutions[menor]->array[i] != current->array[i]){
                 undo_color = current->array[i];
                 index = i;
@@ -193,18 +264,18 @@ solution_t *tabu_search(solution_t *sol, Graph_t *graph, int num_colors){
             }
         }
 
-        int is_tabu = is_tabu_move(tabu_list, undo_color, index);
-        if(is_tabu == 0){
+        int is_tabu = is_tabu_move(tabu_list, undo_color, index); // Verifica se é movimento tabu
+        if(is_tabu == 0){ //Se não for movimento tabu, aceita a solução e insere o movimento inverso na lista tabu
             copy_solution(current, arr_solutions[menor], graph);
-            //print_solution(arr_solutions[menor], graph->V);
-            //printf("Número de conflitos: %d\n", arr_solutions[menor]->fitness_value); //adicionar a inserção na lista
             insert_tabu_move(tabu_list, undo_color, index);
-        } else if(arr_solutions[menor]->fitness_value < (current->fitness_value-1)){
-            list_erase(tabu_list, is_tabu);
-            copy_solution(current, arr_solutions[menor], graph);
+        } else if(arr_solutions[menor]->fitness_value < (current->fitness_value-1)){ // Se for tabu, mas o ganho for considerável
+            list_erase(tabu_list, is_tabu); // Remove o movimento da lista tabu
+            copy_solution(current, arr_solutions[menor], graph); // Aceita a solução
         }
-        // falta a parte de decrementar as iterações
+        // Decrementar as iterações
         decrease_iterations(tabu_list);
+
+        // Atualizar a melhor solução encontrada
         if(current->fitness_value < best_solution->fitness_value){
             copy_solution(best_solution, current, graph);
             num_iter = 0;
@@ -213,6 +284,7 @@ solution_t *tabu_search(solution_t *sol, Graph_t *graph, int num_colors){
         }
     }
 
+    // Libera a memória alocada
     free_list(tabu_list);
 
     for(int i=0; i < num_sol_geradas; i++)
