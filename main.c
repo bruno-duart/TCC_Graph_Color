@@ -5,7 +5,7 @@
 //#include "grafos.h"
 #include "metaheuristics.h"
 
-#define NUM_COLORS 4
+#define NUM_COLORS 50
 
 int main(){
     int num_vertex;
@@ -14,33 +14,33 @@ int main(){
 
     solution_t *sol;// = new_solution(num_vertex);
     Graph_t *graph = New_Graph(num_vertex);
-    //int **matrix = New_matrix(num_vertex, num_vertex);
 
-    /*sol->array[0] = 1;
-    sol->array[1] = 2;
-    sol->array[2] = 2;
-    sol->array[3] = 3;
-    sol->array[4] = 2;*/
-
+    printf("Iniciando\n\n");
+    /*sol = reduce_conflicts(graph, NUM_COLORS);
+    printf("---------------------------\n");
+    //print_solution(sol, graph->V);
+    printf("Conflitos: %d\tSpilling: %d\n", sol->num_conflitos, sol->spilling);*/
     sol = construct_first_solution(NUM_COLORS, graph);
-    fitness_calculation(sol, graph);
-    print_solution(sol, num_vertex);
-    printf("Número de conflitos: %d\n", sol->fitness_value);
+    //print_solution(sol, num_vertex);
+    printf("Número de conflitos: %d\n", sol->num_conflitos);
 
-    //solution_t *new_sol = explore_neighborhood(sol, graph, 3);
+    printf("\n--------------------------------------------------\n\n");
 
-    //solution_t *new_sol = simulated_annealing(sol, graph, NUM_COLORS);
-    //print_solution(new_sol, num_vertex);
-    //printf("Número de conflitos: %d\n", new_sol->fitness_value);
-
+    printf("Busca Tabu:\n");
     solution_t *new_sol_2 = tabu_search(sol, graph, NUM_COLORS);
-    print_solution(new_sol_2, num_vertex);
-    printf("Número de conflitos: %d\n", new_sol_2->fitness_value);
+    //print_solution(new_sol_2, num_vertex);
+    printf("Número de conflitos: %d\n", new_sol_2->num_conflitos);
+    
+    /*int *array_solutions = count_conflicts(sol, graph);
+    for(int i=0; i < graph->V; i++){
+        printf("%d ",array_solutions[i]);
+    }*/
 
     free_solution(sol);
     //free_solution(new_sol);
-    free_solution(new_sol_2);
+    //free_solution(new_sol_2);
     free_Graph(graph);
+    //free(array_solutions);*/
     return 0;
 }
 

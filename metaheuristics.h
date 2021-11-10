@@ -8,7 +8,8 @@
 
 typedef struct _solution_t{
     int *array;
-    int fitness_value;
+    int num_conflitos;
+    int spilling;
 }solution_t;
 
 solution_t *new_solution(int num_vertices);
@@ -24,3 +25,7 @@ void insert_tabu_move(list_t *list, int undo_color, int index);
 int is_tabu_move(list_t *list, int undo_color, int index);
 void decrease_iterations(list_t *list);
 solution_t *tabu_search(solution_t *sol, Graph_t *graph, int num_colors);
+int find_max_conflicts(int *arr, int arr_size);
+int *count_conflicts(solution_t *sol, Graph_t *graph);
+void remove_vertex(Graph_t *graph, solution_t *sol);
+solution_t *reduce_conflicts(Graph_t *graph, int num_color);

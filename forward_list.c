@@ -1,6 +1,13 @@
 #include "forward_list.h"
 
 node_t *new_node(int index_i, int undo_color, int T_iter){
+    /**
+     * Função para criar um novo nó na lista
+     * @param index_i: índice do vértice alterado
+     * @param undo_color: cor que desfaz a alteração
+     * @param T_iter: número de iterações que o movimento é tabu
+     * @return node: novo nó criado
+    */
     node_t *node = malloc(sizeof(node_t));
     
     node->index_i = index_i;
@@ -12,6 +19,10 @@ node_t *new_node(int index_i, int undo_color, int T_iter){
 }
 
 list_t *new_list(){
+    /**
+     * Função para criar uma nova lista
+     * @return list: retorna a lista que foi criada
+    */
     list_t *list = malloc(sizeof(list_t));
 
     list->head = NULL;
@@ -21,6 +32,10 @@ list_t *new_list(){
 }
 
 void free_list(list_t *list){
+    /**
+     * Libera a memória alocada para a lista
+     * @param list: lista a ter memória liberada
+    */
     
     while(list->head != NULL){
         node_t *aux;
@@ -33,6 +48,13 @@ void free_list(list_t *list){
 }
 
 node_t *list_at(list_t *list, int position){
+    /**
+     * Função que percorre a lista até uma determinada posição
+     * e retorna um ponteiro para o nó que a ocupa
+     * @param list: lista a ser percorrida
+     * @param position: posição desejada
+     * @return aux: ponteiro para a posição desejada
+    */
     node_t *aux = list->head;
 
     for(int i=0; i < position && aux != NULL; i++){
@@ -42,26 +64,23 @@ node_t *list_at(list_t *list, int position){
 }
 
 void list_set(list_t *list, int position, int index_i, int undo_color){
+    /**
+     * Função que altera os valores de um nó na lista.
+     * @param list: lista a ter algum valor alterado
+     * @param position: posição desejada
+     * @param index_i: novo índice de vértice
+     * @param undo_color: nova cor
+    */
     node_t *node = list_at(list, position);
     node->index_i = index_i;
     node->undo_color = undo_color;
 }
 
-int list_search_by_value(list_t *list, int index_i, int undo_color){
-    node_t *aux = list->head;
-    int position = 0;
-
-    while(aux != NULL){
-        if((aux->index_i == index_i) && (aux->undo_color == undo_color)){
-            return position;
-        }
-        aux = aux->next;
-        position++;
-    }
-    return position;
-}
-
 int list_size(list_t *list){
+    /**
+     * Função que retorna o tamanho da lista
+     * @param list: lista a ter o tamanho calculado
+    */
     node_t *aux = list->head;
     int i = 0;
 
@@ -74,6 +93,10 @@ int list_size(list_t *list){
 }
 
 void print_list(list_t *list){
+    /**
+     * Função para exibir a lista no console.
+     * @param list: lista ser exibida
+    */
     node_t *aux = list->head;
     while(aux != NULL){
         printf("(%d,%d)", aux->index_i, aux->undo_color);
@@ -86,6 +109,14 @@ void print_list(list_t *list){
 }
 
 void list_insert(list_t *l, int index_i, int undo_color, int T_iter, int position){
+    /**
+     * Função para inserir um novo nó na lista.
+     * @param list: lista a ter um novo nó
+     * @param index_i: índice do vértice correspondente
+     * @param undo_color: cor que desfaz o movimento tabu
+     * @param T_iter: número de iterações com o movimento restrito
+     * @param position: posição onde o novo nó deve ser inserido
+    */
     node_t *node = new_node(index_i, undo_color, T_iter);
 
     if(position == 0){
@@ -100,14 +131,34 @@ void list_insert(list_t *l, int index_i, int undo_color, int T_iter, int positio
 }
 
 void list_push_front(list_t *l, int index_i, int undo_color, int T_iter){
+    /**
+     * Função para inserir um vértice no início da lista
+     * @param l: lista a ter um novo nó
+     * @param index_i: índice do vértice correspondente
+     * @param undo_color: cor que desfaz o movimento tabu
+     * @param T_iter: número de iterações com o movimento restrito
+    */
     list_insert(l, index_i, undo_color, T_iter, 0);
 }
 
 void list_push_back(list_t *l, int index_i, int undo_color, int T_iter){
+    /**
+     * Função para inserir um vértice no final da lista
+     * @param l: lista a ter um novo nó
+     * @param index_i: índice do vértice correspondente
+     * @param undo_color: cor que desfaz o movimento tabu
+     * @param T_iter: número de iterações com o movimento restrito
+    */
     list_insert(l, index_i, undo_color, T_iter, l->size_list);
 }
 
 int * list_erase(list_t *l, int position){
+    /**
+     * Função para apagar um elemento de uma lista, 
+     * em uma determinada posição.
+     * @param l: lista a ter um elemento removido
+     * @param position: posição do elemento a ser removido
+    */
     node_t *aux, *ptr;
     int value[2];
     if(position == 0){
@@ -128,9 +179,17 @@ int * list_erase(list_t *l, int position){
 }
 
 int * list_pop_front(list_t *l){
+    /**
+     * Função para remover o primeiro elemento da lista
+     * @param l: lista a ter o primeiro elemento removido
+    */
     return list_erase(l, 0);
 }
 
 int * list_pop_back(list_t *l){
+    /**
+     * Função para remover o último elemento da lista
+     * @param l: lista a ter o último elemento removido
+    */
     return list_erase(l, l->size_list-1);
 }
