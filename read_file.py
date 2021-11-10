@@ -1,7 +1,7 @@
 #import glob
 import numpy as np
 
-path = "/home/brunoduarte/Downloads/graph_color/myciel4.col"#.col"
+path = "/home/brunoduarte/Downloads/graph_color/wap04a.col"#.col"
 
 #files = glob.glob(pathname=(path+'.col'))
 

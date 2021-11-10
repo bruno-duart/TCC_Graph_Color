@@ -2,10 +2,9 @@
 
 #define T_MAX 10000
 #define CONVERGE 1000
-#define EQUILIBRIO 1000
+#define EQUILIBRIO 5000
 #define T_MIN 10
-#define MAX_TABU_SIZE 100
-#define T_ITER 10
+#define T_ITER 50
 
 solution_t *new_solution(int num_vertices){
     /**
@@ -15,7 +14,8 @@ solution_t *new_solution(int num_vertices){
     */
     solution_t *sol = malloc(sizeof(solution_t));
     sol->array = malloc(sizeof(int)*num_vertices);
-    sol->fitness_value = 0;
+    sol->num_conflitos = 0;
+    sol->spilling = 0;
 
     return sol;
 }
@@ -40,12 +40,19 @@ void fitness_calculation(solution_t *sol, Graph_t *graph){
      * @param graph : grafo que contém a matriz de adjacências
      * 
     */
-    sol->fitness_value = 0;
+    sol->num_conflitos = 0;
     for(int i=0; i < graph->V; i++){
-        for(int j=i+1; j < graph->V; j++){
-            if(sol->array[i] == sol->array[j] && graph->adj[i][j] != 0){
-                sol->fitness_value++;
+        if(graph->adj[i][i] != -1){
+            for(int j=i+1; j < graph->V; j++){
+                if(sol->array[i] == sol->array[j] && graph->adj[i][j] != 0){
+                    sol->num_conflitos++;
+                }
             }
+        }
+    }
+    for(int i=0; i < graph->V; i++){
+        if(sol->array[i] == -1){
+            sol->spilling++;
         }
     }
 }
@@ -61,8 +68,13 @@ solution_t *construct_first_solution(int num_color, Graph_t *graph){
     */
     solution_t* sol = new_solution(graph->V);
 
-    for(int i=0; i<graph->V; i++)
-        sol->array[i] = (rand() % num_color) + 1;
+    for(int i=0; i<graph->V; i++){
+        if(graph->adj[i][i] == -1){
+            sol->array[i] = -1;
+        } else{
+            sol->array[i] = (rand() % num_color) + 1;
+        }
+    }
 
     fitness_calculation(sol, graph);
 
@@ -92,7 +104,7 @@ void copy_solution(solution_t *new, solution_t *old, Graph_t *graph){
     for(int i=0; i < graph->V; i++){
         new->array[i] = old->array[i];
     }
-    new->fitness_value = old->fitness_value;
+    new->num_conflitos = old->num_conflitos;
 }
 
 void explore_neighborhood(solution_t *new_sol, solution_t *sol, Graph_t *graph, int num_colors){
@@ -104,7 +116,10 @@ void explore_neighborhood(solution_t *new_sol, solution_t *sol, Graph_t *graph, 
      * @param graph: grafo de adjacências 
      * @param num_colors: número de cores disponíveis
     */
-    int num_index = rand() % graph->V;
+    int num_index;
+    do{
+        num_index = rand() % graph->V;
+    }while(graph->adj[num_index][num_index] == -1);
 
     copy_solution(new_sol, sol, graph);
 
@@ -136,14 +151,14 @@ solution_t *simulated_annealing(solution_t *sol, Graph_t *graph, int num_colors)
         num_pioras = 0;
         do{
             explore_neighborhood(current, sol, graph, num_colors); // explora a vizinhança
-            deltaE = current->fitness_value - sol->fitness_value; // Calcula a variação de energia das soluções
+            deltaE = current->num_conflitos - sol->num_conflitos; // Calcula a variação de energia das soluções
 
             probability = ((double) rand()) / ((double) RAND_MAX);
 
             if (deltaE < 0){ // Caso a nova solução gerada seja melhor que a corrente
                 copy_solution(sol, current, graph);
                 num_iter=0;
-                if (sol->fitness_value < best_solution->fitness_value){ // Se for melhor que a melhor corrente
+                if (sol->num_conflitos < best_solution->num_conflitos){ // Se for melhor que a melhor corrente
                     copy_solution(best_solution, sol, graph);
                 }
             } else if(probability < exp(-deltaE/T)){ // Solução gerada é pior, mas é aceita por probabilidade
@@ -154,19 +169,20 @@ solution_t *simulated_annealing(solution_t *sol, Graph_t *graph, int num_colors)
                 num_iter++;
             }
 
-            if (best_solution->fitness_value == 0){ // Se tiver atingido zero conflitos
+            if (best_solution->num_conflitos == 0){ // Se tiver atingido zero conflitos
                 break;
             }
             
         }while((num_iter < CONVERGE) && (num_pioras < EQUILIBRIO)); // Até que uma condição de equilíbrio seja satisfeita
-        if (best_solution->fitness_value == 0){
+        if (best_solution->num_conflitos == 0){
             break;
         }
         
-        T *= 0.98;
+        T *= 0.9;
     }while(T > T_MIN); // Enquanto a temperatura atual for maior que a mínima
 
     free_solution(current);
+    fitness_calculation(best_solution, graph);
     return best_solution;
 }
 
@@ -245,13 +261,13 @@ solution_t *tabu_search(solution_t *sol, Graph_t *graph, int num_colors){
     list_t *tabu_list = new_list();
 
     //Here goes the code
-    while(num_iter < 100){//(best_solution->fitness_value > 0 && num_iter < EQUILIBRIO){
+    while(best_solution->num_conflitos > 0 && num_iter < EQUILIBRIO){
         // Gerar um determinado número de soluções, e pega a melhor
         int menor = 0, index, undo_color;
         for(int i=0; i<num_sol_geradas; i++){
             explore_neighborhood(arr_solutions[i], current, graph, num_colors);
 
-            if(arr_solutions[i]->fitness_value < arr_solutions[menor]->fitness_value){
+            if(arr_solutions[i]->num_conflitos < arr_solutions[menor]->num_conflitos){
                 menor = i;
             }
         }
@@ -268,7 +284,7 @@ solution_t *tabu_search(solution_t *sol, Graph_t *graph, int num_colors){
         if(is_tabu == 0){ //Se não for movimento tabu, aceita a solução e insere o movimento inverso na lista tabu
             copy_solution(current, arr_solutions[menor], graph);
             insert_tabu_move(tabu_list, undo_color, index);
-        } else if(arr_solutions[menor]->fitness_value < (current->fitness_value-1)){ // Se for tabu, mas o ganho for considerável
+        } else if(arr_solutions[menor]->num_conflitos < (current->num_conflitos-1)){ // Se for tabu, mas o ganho for considerável
             list_erase(tabu_list, is_tabu); // Remove o movimento da lista tabu
             copy_solution(current, arr_solutions[menor], graph); // Aceita a solução
         }
@@ -276,7 +292,7 @@ solution_t *tabu_search(solution_t *sol, Graph_t *graph, int num_colors){
         decrease_iterations(tabu_list);
 
         // Atualizar a melhor solução encontrada
-        if(current->fitness_value < best_solution->fitness_value){
+        if(current->num_conflitos < best_solution->num_conflitos){
             copy_solution(best_solution, current, graph);
             num_iter = 0;
         }else {
@@ -291,5 +307,67 @@ solution_t *tabu_search(solution_t *sol, Graph_t *graph, int num_colors){
         free_solution(arr_solutions[i]);
 
     free_solution(current);
+    fitness_calculation(best_solution, graph);
     return best_solution;
+}
+
+int *count_conflicts(solution_t *sol, Graph_t *graph){
+    int *array_conflicts = malloc(sizeof(int)*graph->V);
+
+    for(int i=0; i<graph->V; i++){
+        array_conflicts[i] = 0;
+    }
+
+    for(int i=0; i<graph->V; i++){
+        if(graph->adj[i][i] != -1){
+            for(int j=0; j<graph->V; j++){
+                if((graph->adj[i][j] != 0) && (sol->array[i] == sol->array[j])){
+                    array_conflicts[i]++;
+                }
+            }
+        }
+    }
+    return array_conflicts;
+}
+
+int find_max_conflicts(int *arr, int arr_size){
+    int max = 0;
+    for(int i=1; i < arr_size; i++){
+        if(arr[i] > arr[max]){
+            max = i;
+        }
+    }
+    return max;
+}
+
+void remove_vertex(Graph_t *graph, solution_t *sol){
+    int *arr_conflicts = count_conflicts(sol, graph);
+    int num_vertex = find_max_conflicts(arr_conflicts, graph->V);
+
+    graph->adj[num_vertex][num_vertex] = -1;
+
+    free(arr_conflicts);
+}
+
+solution_t *reduce_conflicts(Graph_t *graph, int num_color){
+    solution_t *initial_solution, *best_current_solution;//, *best_global_solution;
+    int num_iter = 0;
+
+    do{
+        initial_solution = construct_first_solution(num_color, graph);
+        //best_current_solution = simulated_annealing(initial_solution, graph, num_color);
+        best_current_solution = tabu_search(initial_solution, graph, num_color);
+
+        if ((best_current_solution->num_conflitos == 0) || (num_iter > graph->V)){
+            break;
+        }
+        //print_solution(best_current_solution, graph->V);
+        printf("Conflitos: %d\tSpilling: %d\n", best_current_solution->num_conflitos, best_current_solution->spilling);
+        remove_vertex(graph, best_current_solution);
+        free_solution(initial_solution);
+        free_solution(best_current_solution);
+        num_iter++;
+    }while(1);
+    free_solution(initial_solution);
+    return best_current_solution;
 }
